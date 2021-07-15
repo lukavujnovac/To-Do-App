@@ -1,21 +1,27 @@
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
 
     var itemArray = [Item]()
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+//    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
+    //dosa si u appDelegate i trazia oni context za spremit podakte
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+
     
 //    let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+            
 //        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
 //            itemArray = items
 //        }
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
-        loadItems()
+//        loadItems()
         
     }
     
@@ -57,6 +63,7 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
+    //MARK: - plusButtonPressed
 //kad se stisne oni plus da izade prozor za unit novi task
     @IBAction func plusButtonPressed(_ sender: UIBarButtonItem) {
         
@@ -68,8 +75,11 @@ class TodoListViewController: UITableViewController {
         //stvaran botun na popupu
         let action = UIAlertAction(title: "Add New Item", style: .default) { action in
             //moras dodat ono sta bude u textfieldu i onda reload da se ucita ispocetka to novo
-            let newItem = Item()
+            
+            
+            let newItem = Item(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false
             self.itemArray.append(newItem)
             
 //            self.defaults.set(self.itemArray, forKey: "TodoListArray")
@@ -90,27 +100,29 @@ class TodoListViewController: UITableViewController {
         
     }
     
+    //MARK: - saveItems
+    //uzet ce podatke koje ja unesen u apk i poslat ih u neki plis file
     func saveItems() {
-        let encoder = PropertyListEncoder()
-        
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+            //nasa si ovu liniju u appDelegate liniju za spremit podatke
+            try self.context.save()
         }catch {
-            print("Error u catch bloku, \(error)")
+            print("error saving context \(error)")
         }
         
         tableView.reloadData()
     }
     
-    func loadItems() {
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            let decoder = PropertyListDecoder()
-            do {
-                 itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("error kod decodanja podataka \(error)")
-            }
-        }
-    }
+    //MARK: - loadItems
+    //uzet ce podatke iz plist filea i stavit ih u apk
+//    func loadItems() {
+//        if let data = try? Data(contentsOf: dataFilePath!) {
+//            let decoder = PropertyListDecoder()
+//            do {
+//                 itemArray = try decoder.decode([Item].self, from: data)
+//            } catch {
+//                print("error kod decodanja podataka \(error)")
+//            }
+//        }
+//    }
 }
