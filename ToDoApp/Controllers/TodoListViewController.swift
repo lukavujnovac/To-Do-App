@@ -21,7 +21,7 @@ class TodoListViewController: UITableViewController {
 //        }
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
-//        loadItems()
+        loadItems()
         
     }
     
@@ -113,16 +113,15 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    //MARK: - loadItems
-    //uzet ce podatke iz plist filea i stavit ih u apk
-//    func loadItems() {
-//        if let data = try? Data(contentsOf: dataFilePath!) {
-//            let decoder = PropertyListDecoder()
-//            do {
-//                 itemArray = try decoder.decode([Item].self, from: data)
-//            } catch {
-//                print("error kod decodanja podataka \(error)")
-//            }
-//        }
-//    }
+//    MARK: - loadItems
+//    uzet ce podatke iz plist filea i stavit ih u apk
+    func loadItems() {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+        do {
+            itemArray = try context.fetch(request)
+        }catch {
+            print("error fetching data \(error)")
+        }
+    }
 }
