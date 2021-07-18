@@ -15,7 +15,6 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-            
 //        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
 //            itemArray = items
 //        }
@@ -50,16 +49,18 @@ class TodoListViewController: UITableViewController {
         return cell
         
     } 
+    //MARK: - TableView Delegate funkcije
         
     //skida i dodaje checkmark
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+//        context.delete(itemArray[indexPath.row])
+//        itemArray.remove(at: indexPath.row)
+
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
         saveItems()
 
-        tableView.reloadData()
-        
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -115,13 +116,40 @@ class TodoListViewController: UITableViewController {
     
 //    MARK: - loadItems
 //    uzet ce podatke iz plist filea i stavit ih u apk
-    func loadItems() {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+//        let request: NSFetchRequest<Item> = Item.fetchRequest()
         do {
             itemArray = try context.fetch(request)
         }catch {
             print("error fetching data \(error)")
         }
+        tableView.reloadData()
+    }
+    
+    
+}
+
+//MARK: - Search bar funkcije
+extension TodoListViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        loadItems(with: request)
+        
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+        
     }
 }
