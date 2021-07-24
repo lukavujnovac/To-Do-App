@@ -1,44 +1,53 @@
 import UIKit
-import CoreData
+import RealmSwift
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
 
-    var itemArray = [Item]()
+    var toDoItems: Results<Item>?
+    
+    var selectedItemId = ObjectId.generate()
+    
+    let realm = try! Realm()
+    
+    var selectedCategory: Category?  {
+        didSet {
+            loadItems()
+        }
+    }
     
 //    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    
-    //dosa si u appDelegate i trazia oni context za spremit podakte
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-
     
 //    let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-//            itemArray = items
-//        }
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
-        loadItems()
+        tableView.rowHeight = 80.0
         
+        self.navigationItem.title = selectedCategory?.name
     }
+    //MARK: - TableView Delegate funkcije
     
     //vraca samo koliko triba stavit itema u listu
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemArray.count
+        return toDoItems?.count ?? 1
     }
     
     //stvara celije i puni ih s tekstom 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+//        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
-        let item = itemArray[indexPath.row]
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
-        cell.textLabel?.text = item.title
+        if let item = toDoItems?[indexPath.row] {
+            cell.textLabel?.text = item.title
 
-        cell.accessoryType = item.done ? .checkmark : .none
+            cell.accessoryType = item.done ? .checkmark : .none
+        }else {
+            cell.textLabel?.text = "No Items Added"
+        }
+        
         
 //        if item.done == true {
 //            cell.accessoryType = .checkmark
@@ -48,19 +57,26 @@ class TodoListViewController: UITableViewController {
 //        
         return cell
         
-    } 
-    //MARK: - TableView Delegate funkcije
+    }
+    
+    //fali ti jos za editad iteme
         
     //skida i dodaje checkmark
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-//        context.delete(itemArray[indexPath.row])
-//        itemArray.remove(at: indexPath.row)
-
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        if let item = toDoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    item.done = !item.done
+//                    realm.delete(item)
+                }
+            }catch {
+                print("error adding checkmark \(error)")
+            } 
+        }
         
-        saveItems()
-
+        tableView.reloadData()
+        
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -74,18 +90,25 @@ class TodoListViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New To Do Item", message: "", preferredStyle: .alert)
         
         //stvaran botun na popupu
-        let action = UIAlertAction(title: "Add New Item", style: .default) { action in
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        let action = UIAlertAction(title: "Add", style: .default) { action in
             //moras dodat ono sta bude u textfieldu i onda reload da se ucita ispocetka to novo
-            
-            
-            let newItem = Item(context: self.context)
-            newItem.title = textField.text!
-            newItem.done = false
-            self.itemArray.append(newItem)
-            
-//            self.defaults.set(self.itemArray, forKey: "TodoListArray")
-            
-            self.saveItems()
+
+            if let currentCategory = self.selectedCategory {
+    
+                do {
+                    try self.realm.write {
+                        let newItem = Item()
+                        newItem.title = textField.text!
+                        newItem.dateCreated = Date()
+                        currentCategory.items.append(newItem)
+                    }
+                }catch {
+                    print("error u spremanju nove kategorije \(error)")
+                }
+
+            }
+            self.tableView.reloadData()
                 
         }
         
@@ -96,49 +119,112 @@ class TodoListViewController: UITableViewController {
         }
         
         alert.addAction(action)
+        alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
         
     }
     
-    //MARK: - saveItems
-    //uzet ce podatke koje ja unesen u apk i poslat ih u neki plis file
-    func saveItems() {
-        do {
-            //nasa si ovu liniju u appDelegate liniju za spremit podatke
-            try self.context.save()
-        }catch {
-            print("error saving context \(error)")
+//    MARK: - loadCategories
+//    uzet ce podatke iz plist filea i stavit ih u apk
+    func loadItems() {
+        
+        toDoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
+//        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+//        let categoryPredicate = NSPredicate(format: "parentCategory.name CONTAINS %@", selectedCategory!.name!)
+//        
+//        if let additionalPredicate = predicate {
+//            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+//        }else {
+//            request.predicate = categoryPredicate
+//        }
+//      
+//        do {
+//            toDoItems = try context.fetch(request)
+//        }catch {
+//            print("error fetching data \(error)")
+//        }
+        tableView.reloadData()
+    }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        
+        let deleteAlert = UIAlertController(title: "Delete \(toDoItems![indexPath.row].title)", message: "press 'Confirm' to delete", preferredStyle: .alert)
+        
+        let confirmButton = UIAlertAction(title: "Confirm", style: .destructive) { action in
+            if let itemForDeletion = self.toDoItems?[indexPath.row] {
+                do {
+                    try self.realm.write {
+                        self.realm.delete(itemForDeletion)
+                    }
+                }catch {
+                    print("error kod brisanja itema \(error)")
+                }
+            }
+            self.tableView.reloadData()
         }
         
-        tableView.reloadData()
+        let cancelButton = UIAlertAction(title: "Cancel", style: .default, handler: nil)
+        
+        deleteAlert.addAction(confirmButton)
+        deleteAlert.addAction(cancelButton)
+        
+        present(deleteAlert, animated: true, completion: nil)
+        
+        
+        
     }
     
-//    MARK: - loadItems
-//    uzet ce podatke iz plist filea i stavit ih u apk
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
-//        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        do {
-            itemArray = try context.fetch(request)
-        }catch {
-            print("error fetching data \(error)")
+    override func editModel(at indexPath: IndexPath) {
+        
+        selectedItemId = toDoItems![indexPath.row]._id
+        
+        var textField = UITextField()
+        
+        let editAlert = UIAlertController(title: "Edit Item Title", message: "", preferredStyle: .alert)
+        
+        let saveButton = UIAlertAction(title: "Save", style: .default) { action in
+            let editedItem = Item(value: ["_id": self.selectedItemId, "title": textField.text])
+            
+            do {
+                try self.realm.write{
+                    self.realm.add(editedItem, update: .modified)
+                }
+            }catch {
+                print("error editing items \(error)")
+            }
+            
+            self.tableView.reloadData()
         }
-        tableView.reloadData()
+        
+        let cancelButton = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        editAlert.addTextField { alertTextField in
+            alertTextField.placeholder = "Changed Item Title"
+            textField = alertTextField
+        }
+        
+        editAlert.addAction(cancelButton)
+        editAlert.addAction(saveButton)
+        
+        
+        present(editAlert, animated: true, completion: nil)
     }
-    
     
 }
 
 //MARK: - Search bar funkcije
 extension TodoListViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
         
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        toDoItems = toDoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: false)
         
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        tableView.reloadData()
         
-        loadItems(with: request)
+//        let request: NSFetchRequest<Item> = Item.fetchRequest()
+//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)] 
+//        loadCategories(with: request, predicate: predicate)
         
     }
     
@@ -152,4 +238,7 @@ extension TodoListViewController: UISearchBarDelegate {
         }
         
     }
+
+
+
 }

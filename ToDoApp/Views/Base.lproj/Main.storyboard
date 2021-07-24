@@ -8,7 +8,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--To Do App-->
+        <!--Categories-->
         <scene sceneID="fAM-kP-M6w">
             <objects>
                 <tableViewController id="Oer-N5-iqn" customClass="CategoryViewController" customModule="ToDoApp" customModuleProvider="target" sceneMemberID="viewController">
@@ -17,13 +17,14 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="CategoryCell" id="SvT-TV-dtg">
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Cell" id="SvT-TV-dtg" customClass="SwipeTableViewCell" customModule="SwipeCellKit">
                                 <rect key="frame" x="0.0" y="24.5" width="414" height="43.5"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="SvT-TV-dtg" id="yMh-Wm-Qkg">
                                     <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
+                                <color key="tintColor" name="AccentColor"/>
                             </tableViewCell>
                         </prototypes>
                         <connections>
@@ -31,7 +32,7 @@
                             <outlet property="delegate" destination="Oer-N5-iqn" id="yts-rb-PxK"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="To Do App" id="Ybd-hU-csv">
+                    <navigationItem key="navigationItem" title="Categories" id="Ybd-hU-csv">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="HQf-oS-48R">
                             <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <connections>
@@ -45,7 +46,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FNs-od-eHR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1581" y="46"/>
+            <point key="canvasLocation" x="1579.7101449275362" y="45.535714285714285"/>
         </scene>
         <!--Items-->
         <scene sceneID="2AD-4Y-onB">
@@ -64,13 +65,14 @@
                             </connections>
                         </searchBar>
                         <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ToDoItemCell" id="dnc-JE-fAb">
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Cell" id="dnc-JE-fAb" customClass="SwipeTableViewCell" customModule="SwipeCellKit">
                                 <rect key="frame" x="0.0" y="68.5" width="414" height="43.5"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="dnc-JE-fAb" id="xfl-wg-IZh">
                                     <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
+                                <color key="tintColor" name="AccentColor"/>
                             </tableViewCell>
                         </prototypes>
                         <connections>
@@ -79,7 +81,7 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Items" id="UiN-cR-pjO">
-                        <barButtonItem key="rightBarButtonItem" title="+" id="W7Y-dS-YCY">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="W7Y-dS-YCY">
                             <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <connections>
                                 <action selector="plusButtonPressed:" destination="0kK-Wf-dW7" id="54P-sS-X4h"/>
@@ -114,6 +116,7 @@
             <point key="canvasLocation" x="756.52173913043487" y="45.535714285714285"/>
         </scene>
     </scenes>
+    <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
     <resources>
         <namedColor name="AccentColor">
             <color red="0.0" green="0.46000000000000002" blue="0.89000000000000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
